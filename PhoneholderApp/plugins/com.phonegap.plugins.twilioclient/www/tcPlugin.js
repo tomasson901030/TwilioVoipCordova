@@ -108,9 +108,7 @@
     }
 
     TwilioPlugin.Connection.prototype.disconnect = function(argument) {
-        alert("disconnect function called.");
         if (typeof(argument) == 'function') {
-            alert("disconnect function set.");
             delegate['onconnectiondisconnect'] = argument;
         } else {
             Cordova.exec(null,null,"TCPlugin","disconnectConnection",[]);

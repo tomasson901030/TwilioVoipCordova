@@ -67,27 +67,22 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
             	document.getElementById('call_modal_title').innerText = "Connected.";
             });
 
-            // conn.disconnect(function (connection) {
-            //   alert("disconnected.");
-            // 	var from = find_connection(connection.parameters.From);
-            // 	var res = $scope.find_connection(from);
-            // 	if (res >= 0) {
-            // 		$scope.callers.splice(res, 1);
-            // 		$scope.incoming_connections.splice(res, 1);
-            // 	};
-            // 	connection.cancelNotification();
-            // });
-
-            alert("Connection: " + conn);
-            conn.disconnect(function(connnection) {
+            conn.disconnect(function (connection) {
               alert("disconnected.");
+            	var from = find_connection(connection.parameters.From);
+            	var res = $scope.find_connection(from);
+            	if (res >= 0) {
+            		$scope.callers.splice(res, 1);
+            		$scope.incoming_connections.splice(res, 1);
+            	};
+            	connection.cancelNotification();
             });
-
-            conn.cancel(function (connnection) {
+            
+            conn.cancel(function (connection) {
               alert("cancelled.");
             });
 
-            conn.offline(function (connnection) {
+            conn.offline(function (connection) {
               alert("offline.");
             });
 
