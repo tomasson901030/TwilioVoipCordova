@@ -1,5 +1,8 @@
 var controllers = angular.module('controllers', []);
 
+
+var stopConnecting = false;
+
 controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ionicLoading, $ionicModal, $http) {
 
 	$scope.token = "";
@@ -41,7 +44,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 	    });
 	    request.success(function(data) {
 	    	$scope.token = data;
-	    	// alert("token: " + data);
+	    	alert("token: " + data);
 	    	$scope.after_get_token();
 	    });
 	    request.error(function(error) {
@@ -49,45 +52,44 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 	    });
 	}
 
+	
 	$scope.after_get_token = function() {
 
 		window.Twilio.Device.setup($scope.token);
 
-        Twilio.Device.ready(function (device) {
-            alert("Ready");
+		// Twilio device callback functions
+        Twilio.Device.error(function (error) {
+            alert("Device Error: " + error.message);
         });
 
-        Twilio.Device.error(function (error) {
-            alert("Error: " + error.message);
+		Twilio.Device.offline(function (error) {
+            alert("Device Offline");
+        });
+
+        Twilio.Device.ready(function (device) {
+            alert("Device Ready");
         });
 
         Twilio.Device.connect(function (conn) {
 
-        	alert("connect function start");
-
+        	//stopConnecting = false;
             conn.accept(function (connection) {
+            	//stopConnecting = true;
             	alert("Connection accepted");
             	document.getElementById('call_modal_title').innerText = "Connected";
             });
 
-            alert("connect function half middle");
-            
             conn.disconnect(function (connection) {
+            	//stopConnecting = true;
             	alert("Connection disconnected");
             });
 
-            alert("connect function middle");
-
             conn.error(function(error) {
+            	//stopConnecting = true;
             	alert("Connection Error: " + error.message);
             });
 
-            alert("connect function end");
-        });
-
-        Twilio.Device.incoming(function (conn) {
-        	alert("connect incoming");
-            conn.accept();
+           	alert("Still Connecting... This message is shown to stop current process.");
         });
 	}
 
@@ -101,10 +103,11 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 	};
 
 	$scope.call_hangup = function() {
+		
+		Twilio.Connection.disconnect("disconnect");
 		if ($scope.modal.isShown()) {
 			$scope.closeModal();
 		}
-		Twilio.Connection.disconnect("disconnect");
 	}
 
 	$ionicModal.fromTemplateUrl('call-modal.html', {
@@ -134,3 +137,14 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 		// Execute action
   	});
 });
+
+function delayProcess() {
+	if (stopConnecting == true) {
+		console.log("delayProcess end");
+		return;
+	} else {
+		console.log("delayProcess repeating");
+		alert("qqq");
+		setTimeout(delayProcess, 500);
+	}
+}
