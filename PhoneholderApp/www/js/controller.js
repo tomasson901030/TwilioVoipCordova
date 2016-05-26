@@ -109,6 +109,10 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
 		return res;
 	}
 
+  $scope.call_hangup = function() {
+    Twilio.Connection.disconnect("disconnect");
+  }
+
 	$ionicModal.fromTemplateUrl('call-modal.html', {
     	scope: $scope,
     	animation: 'slide-in-up'
