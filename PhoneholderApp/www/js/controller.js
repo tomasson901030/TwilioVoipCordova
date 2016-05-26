@@ -78,7 +78,8 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
             // 	connection.cancelNotification();
             // });
 
-            conn.disconnect(function() {
+            alert("Connection: " + conn);
+            conn.disconnect(function(connnection) {
               alert("disconnected.");
             });
 
@@ -110,6 +111,9 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
 	}
 
   $scope.call_hangup = function() {
+    if ($scope.modal.isShown()) {
+      $scope.closeModal();
+    }
     Twilio.Connection.disconnect("disconnect");
   }
 
