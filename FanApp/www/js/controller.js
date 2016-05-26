@@ -89,9 +89,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
             	alert("Connection Error: " + error.message);
             });
 
-			$scope.openModal();
-
-           	// alert("Still Connecting... This message is shown to stop current process.");
+           	alert("Still Connecting... This message is shown to stop current process.");
         });
 	}
 
@@ -100,6 +98,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 			alert("Token is empty.");
 		} else {
 			Twilio.Device.connect({"ToClient":"fler"});
+			$scope.openModal();
 		}
 	};
 
