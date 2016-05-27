@@ -1,10 +1,13 @@
 var controllers = angular.module('controllers', []);
 
-controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicLoading, $ionicModal, $http) {
+controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicLoading, $ionicModal, $http, $timeout) {
 
 	$scope.token = "";
 	$scope.callers = [];
 	$scope.incoming_connections = [];
+  $scope.current_connection = "";
+  $scope.current_connected = false;
+  $scope.current_connected_index = -1;
 
 	$scope.initialize = function() {
 		$scope.get_token();
@@ -26,9 +29,14 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
 	}
 
 	$scope.call_accept = function (index) {
-    alert("call_accept called.");
-    alert(index);
-		$scope.incoming_connections[index].accept();
+    alert("call_accept called. for index: " + index);
+    $scope.current_connection = $scope.incoming_connections[index];
+		$scope.current_connection.accept();
+
+    $scope.openModal();
+    $scope.current_connected = true;
+    $scope.current_connected_index = index;
+    $scope.trackConnection();
 	};
 
 	$scope.after_get_token = function() {
@@ -47,69 +55,102 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
         });
 
         window.Twilio.Device.incoming(function (conn) {
-            alert("incoming connection: " + conn);
+            // alert("incoming connection: " + conn);
 
-            conn.parameters(function (parameters) {
+            if (typeof(conn) === typeof(window.Twilio.Connection)) {
               
-              alert("parameters From: " + parameters.From);
+              // conn.showNotification("Notification Text", "../audio/creek.mp3");
+              
+              // conn.accept(function (connection) {
+              // 	alert("Connection Accepted");
+              	// show dialog of receiving call
+                // $scope.openModal();
+              // });
 
-              $scope.callers.push(parameters.From);
-              $scope.incoming_connections.push(conn);
-              $scope.$applyAsync();
-            });
-            
-            conn.showNotification("Notification Text", "../audio/creek.mp3");
 
-            conn.accept(function (connection) {
-            	alert("Connection Accepted");
-              $scope.openModal();
-            	// show dialog of receiving call
-            	document.getElementById('call_modal_title').innerText = "Connected.";
-            });
+              // conn.disconnect(function (connection) {
+              //   alert("disconnected.");
+                // if (typeof(connection) === typeof(window.Twilio.Connection)) {
+                //   connection.parameters(function (parameters) {
+                //     alert("disconnected connection parameters From: " + parameters.From);
 
-            conn.disconnect(function (connection) {
-              alert("disconnected.");
-            	var from = find_connection(connection.parameters.From);
-            	var res = $scope.find_connection(from);
-            	if (res >= 0) {
-            		$scope.callers.splice(res, 1);
-            		$scope.incoming_connections.splice(res, 1);
-            	};
-            	connection.cancelNotification();
-            });
-            
-            conn.cancel(function (connection) {
-              alert("cancelled.");
-            });
+                //     var from = find_connection(parameters.From);
+                //     var res = $scope.find_connection(from);
+                //     if (res >= 0) {
+                //       $scope.callers.splice(res, 1);
+                //       $scope.incoming_connections.splice(res, 1);
+                //       $scope.$applyAsync();
+                //     };
+                //   });
+                // }
+              // });
 
-            conn.offline(function (connection) {
-              alert("offline.");
-            });
+              conn.error(function (error) {
+                alert("error: " + error.message);
+              });
 
-            conn.error(function (error) {
-            	alert("Connection error: " + error.message + "From: " + error.connection.parameters.From);
-            });
+              conn.parameters(function (parameters) {
+                
+                // alert("parameters From: " + parameters.From);
+
+                $scope.callers.push(parameters.From);
+                $scope.incoming_connections.push(conn);
+                $scope.$applyAsync();
+              });
+            };
         });
 	}
 
-	$scope.find_connection = function(caller) {
-		var res = -1;
-		var i = 0;
-		for (var icaller in $scope.callers) {
-			if (caller == icaller) {
-				res = i;
-				break;
-			};
-			i ++;
-		}
-		return res;
-	}
+  $scope.remove_current_connection = function() {
+    if ($scope.current_connected_index != -1) {
+      $scope.callers.splice($scope.current_connected_index, 1);
+      $scope.incoming_connections.splice($scope.current_connected_index, 1);
+      $scope.$applyAsync();
+    };
+  }
+
+	// $scope.find_connection = function(caller) {
+	// 	var res = -1;
+	// 	var i = 0;
+	// 	for (var icaller in $scope.callers) {
+	// 		if (caller == icaller) {
+	// 			res = i;
+	// 			break;
+	// 		};
+	// 		i ++;
+	// 	}
+	// 	return res;
+	// }
 
   $scope.call_hangup = function() {
-    if ($scope.modal.isShown()) {
-      $scope.closeModal();
-    }
+    // $scope.closeModal();
     Twilio.Connection.disconnect("disconnect");
+  }
+
+  $scope.
+
+  $scope.trackConnection = function() {
+    if ($scope.current_connected) {
+      $timeout(function() { $scope.checkCurrentConnectionStatus(); }, 1000);
+    } else {
+      return;
+    }
+  }
+
+  $scope.checkCurrentConnectionStatus = function() {
+    if($scope.current_connection) {
+      $scope.current_connection.status(function(status_string) {
+        // alert(status_string);
+        if (status_string === "closed") {
+          $scope.current_connected = false;
+          $scope.closeModal();
+          $scope.remove_current_connection();
+          // alert("current connection closed");
+        } else {
+          $timeout(function() { $scope.trackConnection(); }, 1000);
+        }
+      });
+    }
   }
 
 	$ionicModal.fromTemplateUrl('call-modal.html', {
@@ -121,10 +162,12 @@ controllers.controller('MainCtrl', function($scope, $state, UserService, $ionicL
   	
   	$scope.openModal = function() {
     	$scope.modal.show();
-    	document.getElementById('call_modal_title').innerText = "Connecting...";
+      document.getElementById('call_modal_title').innerText = "Connected.";
   	};
   	$scope.closeModal = function() {
-    	$scope.modal.hide();
+      if ($scope.modal.isShown()) {
+    	 $scope.modal.hide();
+      }
   	};
   	// Cleanup the modal when we're done with it!
   	$scope.$on('$destroy', function() {

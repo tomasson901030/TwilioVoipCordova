@@ -29,9 +29,9 @@
     // polymorphic function. if called with function as an argument, the function is invoked
     // when a connection has been established. if called with an object a connection is established with those options
     TwilioPlugin.Device.prototype.connect = function(argument) {
-        if (typeof(argument) == 'function') {
+        if (typeof(argument) === 'function') {
             delegate['onconnect'] = argument;
-        } else if (typeof(argument) == 'object') {
+        } else if (typeof(argument) === 'object') {
             Cordova.exec(null,null,"TCPlugin","connect", [argument])
         }
     }
@@ -79,9 +79,11 @@
     }
 
     TwilioPlugin.Connection.prototype.accept = function(argument) {
-        if (typeof(argument) == 'function') {
+        if (typeof(argument) === 'function') {
+            // alert("accept delegate set.");
             delegate['onaccept'] = argument;
         } else {
+            // alert("accept function called.");
             Cordova.exec(null,null,"TCPlugin","acceptConnection",[]);
         }
     }
@@ -108,7 +110,7 @@
     }
 
     TwilioPlugin.Connection.prototype.disconnect = function(argument) {
-        if (typeof(argument) == 'function') {
+        if (typeof(argument) === 'function') {
             delegate['onconnectiondisconnect'] = argument;
         } else {
             Cordova.exec(null,null,"TCPlugin","disconnectConnection",[]);
@@ -135,7 +137,7 @@
         Cordova.exec(fn, null, "TCPlugin", "connectionStatus", []);
     }
 	
-	    TwilioPlugin.Connection.prototype.parameters = function(fn) {
+	TwilioPlugin.Connection.prototype.parameters = function(fn) {
         Cordova.exec(fn, null, "TCPlugin", "connectionParameters", []);
     }
 
