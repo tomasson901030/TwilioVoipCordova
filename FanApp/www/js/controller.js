@@ -72,7 +72,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 
         Twilio.Device.presence(function (presence) {
         	if (presence.from != undefined) {
-        		alert("presence updated from: " + presence.from + " available: " + presence.available);
+        		// alert("presence updated from: " + presence.from + " available: " + presence.available);
         	};
         })
 
