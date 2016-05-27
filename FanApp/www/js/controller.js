@@ -17,7 +17,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 	$scope.get_user_id = function() {
 		var user_id = UserService.getUserId();
 
-		if (user_id == undefined || user_id == "") {
+		if (user_id === undefined || user_id === "") {
 			var request = $http({
 	        	method: "GET",
 	        	url: serverContextPath + "/user_id"
@@ -63,7 +63,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
         });
 
 		Twilio.Device.offline(function (error) {
-            alert("Device Offline");
+            // alert("Device Offline");
         });
 
         Twilio.Device.ready(function (device) {
@@ -72,29 +72,42 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 
         Twilio.Device.connect(function (conn) {
 
+        	// alert("Connection type: " + conn);
         	//stopConnecting = false;
-            conn.accept(function (connection) {
-            	//stopConnecting = true;
-            	alert("Connection accepted");
-            	document.getElementById('call_modal_title').innerText = "Connected";
-            });
+            // conn.accept(function (connection) {
+            // 	//stopConnecting = true;
+            // 	alert("Connection accepted");
+            // 	document.getElementById('call_modal_title').innerText = "Connected";
+            // });
 
-            conn.disconnect(function (connection) {
-            	//stopConnecting = true;
-            	alert("Connection disconnected");
-            });
+        	//alert(typeof(window.Twilio.Connection) + "," + typeof(conn));
 
-            conn.error(function(error) {
-            	//stopConnecting = true;
-            	alert("Connection Error: " + error.message);
-            });
+        	if (typeof(conn) === typeof(window.Twilio.Connection)) {
+        		// alert("conn object is type of TwilioPlugin.Connection. parameteres are ");
+        		conn.accept(function (connection) {
+	            	//stopConnecting = true;
+	            	alert("Connection accepted");
+	            	document.getElementById('call_modal_title').innerText = "Connected";
+            	});
 
-           	alert("Still Connecting... This message is shown to stop current process.");
+            	conn.disconnect(function (connection) {
+            		//stopConnecting = true;
+            		alert("Connection disconnected");
+            		$scope.closeModal();
+            	});
+
+            	conn.error(function(error) {
+	            	//stopConnecting = true;
+	            	alert("Connection Error: " + error.message);
+	            });
+        	};
+
+           	// alert("Still Connecting... This message is shown to stop current process.");
         });
 	}
 
 	$scope.call = function ($event) {
-		if ($scope.token == undefined || $scope.token == "") {
+		if ($scope.token === undefined || $scope.token === "") {
 			alert("Token is empty.");
 		} else {
 			Twilio.Device.connect({"ToClient":"fler"});
@@ -103,11 +116,8 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 	};
 
 	$scope.call_hangup = function() {
-		
 		Twilio.Connection.disconnect("disconnect");
-		if ($scope.modal.isShown()) {
-			$scope.closeModal();
-		}
+		$scope.closeModal();
 	}
 
 	$ionicModal.fromTemplateUrl('call-modal.html', {
@@ -122,7 +132,9 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
     	document.getElementById('call_modal_title').innerText = "Connecting...";
   	};
   	$scope.closeModal = function() {
-    	$scope.modal.hide();
+  		if ($scope.modal.isShown()) {
+    		$scope.modal.hide();
+    	}
   	};
   	// Cleanup the modal when we're done with it!
   	$scope.$on('$destroy', function() {
@@ -137,14 +149,3 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
 		// Execute action
   	});
 });
-
-function delayProcess() {
-	if (stopConnecting == true) {
-		console.log("delayProcess end");
-		return;
-	} else {
-		console.log("delayProcess repeating");
-		alert("qqq");
-		setTimeout(delayProcess, 500);
-	}
-}
