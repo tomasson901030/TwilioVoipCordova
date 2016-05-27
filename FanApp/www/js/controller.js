@@ -70,6 +70,12 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
             alert("Device Ready");
         });
 
+        Twilio.Device.presence(function (presence) {
+        	if (presence.from != undefined) {
+        		alert("presence updated from: " + presence.from + " available: " + presence.available);
+        	};
+        })
+
         Twilio.Device.connect(function (conn) {
 
         	// alert("Connection type: " + conn);
@@ -81,7 +87,7 @@ controllers.controller('MainCtrl', function($scope, $state,$q, UserService, $ion
             // });
 
         	//alert(typeof(window.Twilio.Connection) + "," + typeof(conn));
-
+	
         	if (typeof(conn) === typeof(window.Twilio.Connection)) {
         		// alert("conn object is type of TwilioPlugin.Connection. parameteres are ");
         		conn.accept(function (connection) {
